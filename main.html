@@ -22,6 +22,7 @@
       --primary: #2563eb;
       --soft: #eff6ff;
       --danger: #dc2626;
+      --danger-soft: #fef2f2;
     }
 
     body {
@@ -80,6 +81,8 @@
       border-radius: 18px;
       padding: 24px;
       box-shadow: 0 8px 30px rgba(15, 23, 42, .05);
+      display: flex;
+      flex-direction: column;
     }
 
     .card-title {
@@ -167,12 +170,32 @@
       margin-top: 7px;
     }
 
+    /* CSS YANG DISESUAIKAN UNTUK TOMBOL CLEAR */
+    .btn-clear {
+      margin-top: auto; /* Mendorong tombol ke bagian paling bawah dari card jika ada sisa ruang */
+      padding: 14px 24px;
+      border: 1px solid var(--danger);
+      border-radius: 11px;
+      background: transparent;
+      color: var(--danger);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      width: 100%; /* Membuat tombol selebar kolom input */
+    }
+
+    .btn-clear:hover {
+      background: var(--danger-soft);
+    }
+
     .result-card {
       grid-column: 1 / -1;
       background: var(--text);
       color: white;
       border: none;
       padding: 28px;
+      display: block; /* Mengatur kembali display untuk result card */
     }
 
     .result-header {
@@ -380,7 +403,7 @@
           </div>
         </div>
 
-        <div class="field">
+        <div class="field" style="margin-bottom: 24px;"> <!-- Ditambah margin agar tombol clear berjarak pas -->
           <label for="newBuy">Harga Beli Baru</label>
           <div class="input-wrap">
             <span class="prefix">Rp</span>
@@ -397,6 +420,10 @@
             Harga beli baru harus lebih dari 0.
           </div>
         </div>
+
+        <!-- POSISI BARU TOMBOL CLEAR -->
+        <button id="clearBtn" class="btn-clear" type="button">Bersihkan Data</button>
+
       </div>
 
       <!-- HASIL -->
@@ -453,6 +480,8 @@
     const oldBuyInput = document.getElementById("oldBuy");
     const oldSellInput = document.getElementById("oldSell");
     const newBuyInput = document.getElementById("newBuy");
+    
+    const clearBtn = document.getElementById("clearBtn");
 
     const markupEl = document.getElementById("markup");
     const newSellEl = document.getElementById("newSell");
@@ -514,8 +543,6 @@
       const validOldSell = oldSell > 0;
       const validNewBuy = newBuy > 0;
 
-      // Jangan tampilkan pesan error saat halaman pertama kali dibuka.
-      // Error hanya muncul setelah field tersebut disentuh/difokuskan.
       oldBuyError.style.display =
         showValidation && !validOldBuy && !hasOldBuy ? "block" :
         showValidation && !validOldBuy ? "block" : "none";
@@ -526,7 +553,6 @@
       newBuyError.style.display =
         showValidation && !validNewBuy ? "block" : "none";
 
-      // Selama belum semua field diisi, hasil tetap kosong.
       if (!validOldBuy || !validOldSell || !validNewBuy) {
         markupEl.textContent = "-";
         detailMarkupEl.textContent = "-";
@@ -537,40 +563,27 @@
         return;
       }
 
-      // Markup lama
       const markup = (oldSell - oldBuy) / oldBuy;
-
-      // Harga jual baru sebelum pembulatan
       const newSellRaw = newBuy * (1 + markup);
-
-      // Harga jual baru setelah pembulatan ke atas Rp500
       const newSell = roundUpTo500(newSellRaw);
-
-      // Keuntungan setelah harga jual dibulatkan
       const profit = newSell - newBuy;
 
       markupEl.textContent = percent.format(markup * 100) + "%";
       detailMarkupEl.textContent = percent.format(markup * 100) + "%";
-
       newSellEl.textContent = currency.format(newSell);
       beforeRoundingEl.textContent = currency.format(newSellRaw);
-
       detailBuyEl.textContent = currency.format(newBuy);
       profitEl.textContent = currency.format(profit);
     }
 
     [oldBuyInput, oldSellInput, newBuyInput].forEach(input => {
-
       input.addEventListener("input", () => {
         formatInput(input);
-        // Saat mengetik, jangan tampilkan error pada field lain.
         calculate(false);
       });
 
       input.addEventListener("blur", () => {
         formatInput(input);
-
-        // Validasi hanya field yang baru selesai digunakan.
         const value = getInputNumber(input);
         const errorMap = {
           oldBuy: oldBuyError,
@@ -581,10 +594,21 @@
         errorMap[input.id].style.display = value > 0 ? "none" : "block";
         calculate(false);
       });
-
     });
 
-    // Saat pertama kali dibuka: tidak ada validasi yang tampil.
+    clearBtn.addEventListener("click", () => {
+      oldBuyInput.value = "";
+      oldSellInput.value = "";
+      newBuyInput.value = "";
+
+      oldBuyError.style.display = "none";
+      oldSellError.style.display = "none";
+      newBuyError.style.display = "none";
+
+      calculate(false);
+      oldBuyInput.focus();
+    });
+
     calculate(false);
   </script>
 

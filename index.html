@@ -24,6 +24,7 @@
       --success: #15803d;
       --success-soft: #f0fdf4;
       --danger: #dc2626;
+      --danger-soft: #fef2f2; /* Tambahan warna untuk efek hover tombol clear */
     }
 
     body {
@@ -83,6 +84,9 @@
       border-radius: 18px;
       padding: 24px;
       box-shadow: 0 8px 30px rgba(15, 23, 42, 0.05);
+      /* Tambahan flex agar posisi tombol clear bisa di dorong ke bawah */
+      display: flex;
+      flex-direction: column;
     }
 
     .card-title {
@@ -162,12 +166,32 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
     }
 
+    /* CSS BARU UNTUK TOMBOL CLEAR */
+    .btn-clear {
+      margin-top: auto; /* Mendorong tombol ke area paling bawah di dalam card */
+      padding: 14px 24px;
+      border: 1px solid var(--danger);
+      border-radius: 11px;
+      background: transparent;
+      color: var(--danger);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      width: 100%;
+    }
+
+    .btn-clear:hover {
+      background: var(--danger-soft);
+    }
+
     .result-card {
       grid-column: 1 / -1;
       background: var(--text);
       color: white;
       border: none;
       padding: 28px;
+      display: block; /* Menghindari efek flex dari class .card */
     }
 
     .result-header {
@@ -356,7 +380,8 @@
           </div>
         </div>
 
-        <div class="field">
+        <!-- Tambahan margin bawah agar berjarak dengan tombol clear -->
+        <div class="field" style="margin-bottom: 24px;">
           <label for="newBuy">Harga Beli Baru</label>
           <div class="input-wrap">
             <span class="prefix">Rp</span>
@@ -364,13 +389,16 @@
           </div>
           <div class="error" id="newBuyError">Harga beli baru harus lebih dari 0.</div>
         </div>
+
+        <!-- HTML BARU: TOMBOL CLEAR -->
+        <button id="clearBtn" class="btn-clear" type="button">Bersihkan Data</button>
+
       </div>
 
       <div class="card result-card">
         <div class="result-header">
           <div>
             <h2>Hasil Perhitungan</h2>
-            <!-- <p>Harga jual dihitung berdasarkan markup dari harga lama.</p> -->
           </div>
           <div class="markup">
             <span>Markup Lama</span>
@@ -410,6 +438,9 @@
     const oldBuyInput = document.getElementById("oldBuy");
     const oldSellInput = document.getElementById("oldSell");
     const newBuyInput = document.getElementById("newBuy");
+    
+    // JS BARU: Deklarasi elemen tombol clear
+    const clearBtn = document.getElementById("clearBtn");
 
     const markupEl = document.getElementById("markup");
     const newSellEl = document.getElementById("newSell");
@@ -515,6 +546,25 @@
       input.addEventListener("blur", () => {
         formatInput(input);
       });
+    });
+
+    // JS BARU: Logika tombol clear saat ditekan
+    clearBtn.addEventListener("click", () => {
+      // Kosongkan isi input form
+      oldBuyInput.value = "";
+      oldSellInput.value = "";
+      newBuyInput.value = "";
+
+      // Hapus pesan error jika sedang muncul
+      oldBuyError.style.display = "none";
+      oldSellError.style.display = "none";
+      newBuyError.style.display = "none";
+
+      // Kembalikan kotak hasil ke bentuk "-"
+      resetResults();
+      
+      // Auto-fokus ke input pertama
+      oldBuyInput.focus();
     });
 
     // Default awal: semua form dan hasil kosong.
