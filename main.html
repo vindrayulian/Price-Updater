@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kalkulator harga jual untuk menghitung markup dan harga jual baru berdasarkan kenaikan modal.">
+  <title>Kalkulator Harga Jual</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #2563eb;
+      --soft: #eff6ff;
+      --danger: #dc2626;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 32px 16px;
+    }
+
+    .container {
+      width: min(960px, 100%);
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .badge {
+      display: inline-flex;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      line-height: 1.1;
+      letter-spacing: -1px;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 620px;
+      margin: auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 8px 30px rgba(15, 23, 42, .05);
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: var(--soft);
+      color: var(--primary);
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .card-title h2 {
+      font-size: 17px;
+    }
+
+    .card-title p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .field {
+      margin-bottom: 17px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .prefix {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    input {
+      width: 100%;
+      height: 48px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 0 14px 0 44px;
+      outline: none;
+      color: var(--text);
+      background: #fff;
+      font-size: 15px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+    }
+
+    .error {
+      display: none;
+      color: var(--danger);
+      font-size: 12px;
+      margin-top: 7px;
+    }
+
+    .result-card {
+      grid-column: 1 / -1;
+      background: var(--text);
+      color: white;
+      border: none;
+      padding: 28px;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    .result-header h2 {
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+
+    .result-header p {
+      color: #aeb7c7;
+      font-size: 13px;
+    }
+
+    .markup {
+      background: rgba(255, 255, 255, .1);
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 12px;
+      padding: 11px 15px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .markup span {
+      display: block;
+      font-size: 11px;
+      color: #aeb7c7;
+      margin-bottom: 3px;
+    }
+
+    .markup strong {
+      font-size: 20px;
+    }
+
+    .main-result {
+      background: rgba(255, 255, 255, .07);
+      border-radius: 15px;
+      padding: 22px;
+      margin-bottom: 14px;
+    }
+
+    .main-result .label {
+      color: #aeb7c7;
+      font-size: 13px;
+      margin-bottom: 7px;
+    }
+
+    .price {
+      font-size: clamp(30px, 6vw, 44px);
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .before-rounding {
+      color: #aeb7c7;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .result-details {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .detail {
+      background: rgba(255, 255, 255, .06);
+      border-radius: 12px;
+      padding: 15px;
+    }
+
+    .detail span {
+      display: block;
+      color: #aeb7c7;
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .detail strong {
+      font-size: 15px;
+    }
+
+    .formula {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 11px;
+      background: rgba(255, 255, 255, .05);
+      color: #c8d0dc;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .formula b {
+      color: white;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 680px) {
+      body {
+        padding: 24px 12px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card,
+      .result-card {
+        padding: 20px;
+      }
+
+      .result-header {
+        flex-direction: column;
+      }
+
+      .markup {
+        width: 100%;
+        text-align: left;
+      }
+
+      .result-details {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="container">
+
+    <header class="header">
+      <div class="badge">Kalkulator Harga Jual</div>
+      <h1>Hitung Harga Jual Baru</h1>
+      <p class="subtitle">
+        Pertahankan persentase markup yang sama meskipun harga beli barang mengalami kenaikan.
+      </p>
+    </header>
+
+    <section class="grid">
+
+      <!-- HARGA LAMA -->
+      <div class="card">
+        <div class="card-title">
+          <div class="icon">1</div>
+          <div>
+            <h2>Harga Lama</h2>
+            <p>Masukkan harga sebelum kenaikan</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="oldBuy">Harga Beli Lama</label>
+          <div class="input-wrap">
+            <span class="prefix">Rp</span>
+            <input
+              id="oldBuy"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              value="100.000"
+              placeholder="100.000"
+            >
+          </div>
+          <div class="error" id="oldBuyError">
+            Harga beli lama harus lebih dari 0.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="oldSell">Harga Jual Lama</label>
+          <div class="input-wrap">
+            <span class="prefix">Rp</span>
+            <input
+              id="oldSell"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              value="115.000"
+              placeholder="115.000"
+            >
+          </div>
+          <div class="error" id="oldSellError">
+            Harga jual lama harus diisi.
+          </div>
+        </div>
+      </div>
+
+      <!-- HARGA BARU -->
+      <div class="card">
+        <div class="card-title">
+          <div class="icon">2</div>
+          <div>
+            <h2>Harga Baru</h2>
+            <p>Masukkan harga beli setelah kenaikan</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="newBuy">Harga Beli Baru</label>
+          <div class="input-wrap">
+            <span class="prefix">Rp</span>
+            <input
+              id="newBuy"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              value="120.000"
+              placeholder="120.000"
+            >
+          </div>
+          <div class="error" id="newBuyError">
+            Harga beli baru harus lebih dari 0.
+          </div>
+        </div>
+      </div>
+
+      <!-- HASIL -->
+      <div class="card result-card">
+
+        <div class="result-header">
+          <div>
+            <h2>Hasil Perhitungan</h2>
+            <p>Harga jual menggunakan markup lama dan pembulatan ke atas.</p>
+          </div>
+
+          <div class="markup">
+            <span>Markup Lama</span>
+            <strong id="markup">15,00%</strong>
+          </div>
+        </div>
+
+        <div class="main-result">
+          <div class="label">Harga Jual Baru</div>
+          <div class="price" id="newSell">Rp138.000</div>
+          <div class="before-rounding">
+            Sebelum pembulatan: <span id="beforeRounding">Rp138.000</span>
+          </div>
+        </div>
+
+        <div class="result-details">
+
+          <div class="detail">
+            <span>Harga Beli Baru</span>
+            <strong id="detailBuy">Rp120.000</strong>
+          </div>
+
+          <div class="detail">
+            <span>Keuntungan Baru</span>
+            <strong id="profit">Rp18.000</strong>
+          </div>
+
+          <div class="detail">
+            <span>Markup Tetap</span>
+            <strong id="detailMarkup">15,00%</strong>
+          </div>
+
+        </div>
+
+        <div class="formula">
+          <b>Rumus:</b>
+          Markup = (Harga Jual Lama − Harga Beli Lama) ÷ Harga Beli Lama × 100.
+          <br>
+          Harga Jual Baru = Harga Beli Baru × (1 + Markup).
+          <br>
+          Harga jual kemudian <b>dibulatkan ke atas ke kelipatan Rp500</b>.
+        </div>
+
+      </div>
+
+    </section>
+
+    <footer>
+      Kalkulator ini menggunakan metode markup terhadap harga beli.
+    </footer>
+
+  </main>
+
+  <script>
+    const oldBuyInput = document.getElementById("oldBuy");
+    const oldSellInput = document.getElementById("oldSell");
+    const newBuyInput = document.getElementById("newBuy");
+
+    const markupEl = document.getElementById("markup");
+    const newSellEl = document.getElementById("newSell");
+    const beforeRoundingEl = document.getElementById("beforeRounding");
+    const detailBuyEl = document.getElementById("detailBuy");
+    const profitEl = document.getElementById("profit");
+    const detailMarkupEl = document.getElementById("detailMarkup");
+
+    const oldBuyError = document.getElementById("oldBuyError");
+    const oldSellError = document.getElementById("oldSellError");
+    const newBuyError = document.getElementById("newBuyError");
+
+    const currency = new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0
+    });
+
+    const numberFormat = new Intl.NumberFormat("id-ID");
+
+    const percent = new Intl.NumberFormat("id-ID", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    // Mengubah "100000" menjadi "100.000"
+    function formatInput(input) {
+      const rawValue = input.value.replace(/\D/g, "");
+
+      if (rawValue === "") {
+        input.value = "";
+        return;
+      }
+
+      const number = Number(rawValue);
+      input.value = numberFormat.format(number);
+    }
+
+    // Mengambil angka asli dari input yang sudah memakai titik.
+    function getInputNumber(input) {
+      const rawValue = input.value.replace(/\D/g, "");
+      return rawValue === "" ? 0 : Number(rawValue);
+    }
+
+    /*
+      Pembulatan ke atas ke kelipatan Rp500.
+
+      Contoh:
+      330     -> 500
+      670     -> 1000
+      10.350  -> 10.500
+      10.730  -> 11.000
+      134.326 -> 134.500
+      134.530 -> 135.000
+    */
+    function roundUpTo500(value) {
+      return Math.ceil(value / 500) * 500;
+    }
+
+    function calculate() {
+      const oldBuy = getInputNumber(oldBuyInput);
+      const oldSell = getInputNumber(oldSellInput);
+      const newBuy = getInputNumber(newBuyInput);
+
+      const validOldBuy = oldBuy > 0;
+      const validOldSell = oldSell > 0;
+      const validNewBuy = newBuy > 0;
+
+      oldBuyError.style.display = validOldBuy ? "none" : "block";
+      oldSellError.style.display = validOldSell ? "none" : "block";
+      newBuyError.style.display = validNewBuy ? "none" : "block";
+
+      if (!validOldBuy || !validOldSell || !validNewBuy) {
+        return;
+      }
+
+      // Markup lama
+      const markup = (oldSell - oldBuy) / oldBuy;
+
+      // Harga jual baru sebelum pembulatan
+      const newSellRaw = newBuy * (1 + markup);
+
+      // Harga jual baru setelah pembulatan ke atas Rp500
+      const newSell = roundUpTo500(newSellRaw);
+
+      // Keuntungan setelah harga jual dibulatkan
+      const profit = newSell - newBuy;
+
+      markupEl.textContent = percent.format(markup * 100) + "%";
+      detailMarkupEl.textContent = percent.format(markup * 100) + "%";
+
+      newSellEl.textContent = currency.format(newSell);
+      beforeRoundingEl.textContent = currency.format(newSellRaw);
+
+      detailBuyEl.textContent = currency.format(newBuy);
+      profitEl.textContent = currency.format(profit);
+    }
+
+    [oldBuyInput, oldSellInput, newBuyInput].forEach(input => {
+
+      input.addEventListener("input", () => {
+        formatInput(input);
+        calculate();
+      });
+
+      input.addEventListener("blur", () => {
+        formatInput(input);
+        calculate();
+      });
+
+    });
+
+    calculate();
+  </script>
+
+</body>
+</html>
