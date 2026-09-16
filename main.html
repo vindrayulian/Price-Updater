@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Kalkulator harga jual untuk menghitung markup dan harga jual baru berdasarkan kenaikan modal.">
-  <title>Kalkulator Harga Jual</title>
+  <title>Price Updater</title>
 
   <style>
     * {
@@ -317,11 +317,8 @@
   <main class="container">
 
     <header class="header">
-      <div class="badge">Kalkulator Harga Jual</div>
-      <h1>Hitung Harga Jual Baru</h1>
-      <p class="subtitle">
-        Pertahankan persentase markup yang sama meskipun harga beli barang mengalami kenaikan.
-      </p>
+      <div class="badge">Kalkulator Price Updater</div>
+      <h1>Perhitungan Harga Jual Baru</h1>
     </header>
 
     <section class="grid">
@@ -345,8 +342,8 @@
               type="text"
               inputmode="numeric"
               autocomplete="off"
-              value="100.000"
-              placeholder="100.000"
+              value=""
+              placeholder="Masukan harga beli lama"
             >
           </div>
           <div class="error" id="oldBuyError">
@@ -363,8 +360,8 @@
               type="text"
               inputmode="numeric"
               autocomplete="off"
-              value="115.000"
-              placeholder="115.000"
+              value=""
+              placeholder="Masukan harga jual lama"
             >
           </div>
           <div class="error" id="oldSellError">
@@ -392,8 +389,8 @@
               type="text"
               inputmode="numeric"
               autocomplete="off"
-              value="120.000"
-              placeholder="120.000"
+              value=""
+              placeholder="Masukan harga beli baru"
             >
           </div>
           <div class="error" id="newBuyError">
@@ -408,20 +405,19 @@
         <div class="result-header">
           <div>
             <h2>Hasil Perhitungan</h2>
-            <p>Harga jual menggunakan markup lama dan pembulatan ke atas.</p>
           </div>
 
           <div class="markup">
             <span>Markup Lama</span>
-            <strong id="markup">15,00%</strong>
+            <strong id="markup">-</strong>
           </div>
         </div>
 
         <div class="main-result">
           <div class="label">Harga Jual Baru</div>
-          <div class="price" id="newSell">Rp138.000</div>
+          <div class="price" id="newSell">-</div>
           <div class="before-rounding">
-            Sebelum pembulatan: <span id="beforeRounding">Rp138.000</span>
+            Sebelum pembulatan: <span id="beforeRounding">-</span>
           </div>
         </div>
 
@@ -429,36 +425,26 @@
 
           <div class="detail">
             <span>Harga Beli Baru</span>
-            <strong id="detailBuy">Rp120.000</strong>
+            <strong id="detailBuy">-</strong>
           </div>
 
           <div class="detail">
             <span>Keuntungan Baru</span>
-            <strong id="profit">Rp18.000</strong>
+            <strong id="profit">-</strong>
           </div>
 
           <div class="detail">
             <span>Markup Tetap</span>
-            <strong id="detailMarkup">15,00%</strong>
+            <strong id="detailMarkup">-</strong>
           </div>
 
         </div>
-
-        <div class="formula">
-          <b>Rumus:</b>
-          Markup = (Harga Jual Lama − Harga Beli Lama) ÷ Harga Beli Lama × 100.
-          <br>
-          Harga Jual Baru = Harga Beli Baru × (1 + Markup).
-          <br>
-          Harga jual kemudian <b>dibulatkan ke atas ke kelipatan Rp500</b>.
-        </div>
-
       </div>
 
     </section>
 
     <footer>
-      Kalkulator ini menggunakan metode markup terhadap harga beli.
+      Pasifik Teknik 2026
     </footer>
 
   </main>
@@ -511,35 +497,43 @@
       return rawValue === "" ? 0 : Number(rawValue);
     }
 
-    /*
-      Pembulatan ke atas ke kelipatan Rp500.
-
-      Contoh:
-      330     -> 500
-      670     -> 1000
-      10.350  -> 10.500
-      10.730  -> 11.000
-      134.326 -> 134.500
-      134.530 -> 135.000
-    */
     function roundUpTo500(value) {
       return Math.ceil(value / 500) * 500;
     }
 
-    function calculate() {
+    function calculate(showValidation = false) {
       const oldBuy = getInputNumber(oldBuyInput);
       const oldSell = getInputNumber(oldSellInput);
       const newBuy = getInputNumber(newBuyInput);
+
+      const hasOldBuy = oldBuyInput.value.trim() !== "";
+      const hasOldSell = oldSellInput.value.trim() !== "";
+      const hasNewBuy = newBuyInput.value.trim() !== "";
 
       const validOldBuy = oldBuy > 0;
       const validOldSell = oldSell > 0;
       const validNewBuy = newBuy > 0;
 
-      oldBuyError.style.display = validOldBuy ? "none" : "block";
-      oldSellError.style.display = validOldSell ? "none" : "block";
-      newBuyError.style.display = validNewBuy ? "none" : "block";
+      // Jangan tampilkan pesan error saat halaman pertama kali dibuka.
+      // Error hanya muncul setelah field tersebut disentuh/difokuskan.
+      oldBuyError.style.display =
+        showValidation && !validOldBuy && !hasOldBuy ? "block" :
+        showValidation && !validOldBuy ? "block" : "none";
 
+      oldSellError.style.display =
+        showValidation && !validOldSell ? "block" : "none";
+
+      newBuyError.style.display =
+        showValidation && !validNewBuy ? "block" : "none";
+
+      // Selama belum semua field diisi, hasil tetap kosong.
       if (!validOldBuy || !validOldSell || !validNewBuy) {
+        markupEl.textContent = "-";
+        detailMarkupEl.textContent = "-";
+        newSellEl.textContent = "-";
+        beforeRoundingEl.textContent = "-";
+        detailBuyEl.textContent = "-";
+        profitEl.textContent = "-";
         return;
       }
 
@@ -569,17 +563,29 @@
 
       input.addEventListener("input", () => {
         formatInput(input);
-        calculate();
+        // Saat mengetik, jangan tampilkan error pada field lain.
+        calculate(false);
       });
 
       input.addEventListener("blur", () => {
         formatInput(input);
-        calculate();
+
+        // Validasi hanya field yang baru selesai digunakan.
+        const value = getInputNumber(input);
+        const errorMap = {
+          oldBuy: oldBuyError,
+          oldSell: oldSellError,
+          newBuy: newBuyError
+        };
+
+        errorMap[input.id].style.display = value > 0 ? "none" : "block";
+        calculate(false);
       });
 
     });
 
-    calculate();
+    // Saat pertama kali dibuka: tidak ada validasi yang tampil.
+    calculate(false);
   </script>
 
 </body>

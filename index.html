@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Kalkulator harga jual untuk menghitung markup dan harga jual baru berdasarkan kenaikan modal.">
-  <title>Kalkulator Harga Jual</title>
+  <title>Price Updater</title>
   <style>
     * {
       box-sizing: border-box;
@@ -314,11 +314,8 @@
 
   <main class="container">
     <header class="header">
-      <div class="badge">Kalkulator Harga Jual</div>
-      <h1>Hitung Harga Jual Baru</h1>
-      <p class="subtitle">
-        Pertahankan persentase markup yang sama meskipun harga beli barang mengalami kenaikan.
-      </p>
+      <div class="badge">Kalkulator Price Updater</div>
+      <h1>Perhitungan Harga Jual Baru</h1>
     </header>
 
     <section class="grid">
@@ -335,7 +332,7 @@
           <label for="oldBuy">Harga Beli Lama</label>
           <div class="input-wrap">
             <span class="prefix">Rp</span>
-            <input id="oldBuy" type="number" min="0" step="1" value="100000" placeholder="100000">
+            <input id="oldBuy" type="text" inputmode="numeric" autocomplete="off" placeholder="Masukkan harga beli lama">
           </div>
           <div class="error" id="oldBuyError">Harga beli lama harus lebih dari 0.</div>
         </div>
@@ -344,7 +341,7 @@
           <label for="oldSell">Harga Jual Lama</label>
           <div class="input-wrap">
             <span class="prefix">Rp</span>
-            <input id="oldSell" type="number" min="0" step="1" value="115000" placeholder="115000">
+            <input id="oldSell" type="text" inputmode="numeric" autocomplete="off" placeholder="Masukkan harga jual lama">
           </div>
           <div class="error" id="oldSellError">Harga jual lama harus diisi.</div>
         </div>
@@ -363,7 +360,7 @@
           <label for="newBuy">Harga Beli Baru</label>
           <div class="input-wrap">
             <span class="prefix">Rp</span>
-            <input id="newBuy" type="number" min="0" step="1" value="120000" placeholder="120000">
+            <input id="newBuy" type="text" inputmode="numeric" autocomplete="off" placeholder="Masukkan harga beli baru">
           </div>
           <div class="error" id="newBuyError">Harga beli baru harus lebih dari 0.</div>
         </div>
@@ -373,45 +370,39 @@
         <div class="result-header">
           <div>
             <h2>Hasil Perhitungan</h2>
-            <p>Harga jual dihitung berdasarkan markup dari harga lama.</p>
+            <!-- <p>Harga jual dihitung berdasarkan markup dari harga lama.</p> -->
           </div>
           <div class="markup">
             <span>Markup Lama</span>
-            <strong id="markup">15,00%</strong>
+            <strong id="markup">-</strong>
           </div>
         </div>
 
         <div class="main-result">
           <div class="label">Harga Jual Baru</div>
-          <div class="price" id="newSell">Rp138.000</div>
+          <div class="price" id="newSell">-</div>
         </div>
 
         <div class="result-details">
           <div class="detail">
             <span>Harga Beli Baru</span>
-            <strong id="detailBuy">Rp120.000</strong>
+            <strong id="detailBuy">-</strong>
           </div>
           <div class="detail">
             <span>Keuntungan Baru</span>
-            <strong id="profit">Rp18.000</strong>
+            <strong id="profit">-</strong>
           </div>
           <div class="detail">
             <span>Markup Tetap</span>
-            <strong id="detailMarkup">15,00%</strong>
+            <strong id="detailMarkup">-</strong>
           </div>
         </div>
 
-        <div class="formula">
-          <b>Rumus:</b>
-          Markup = (Harga Jual Lama − Harga Beli Lama) ÷ Harga Beli Lama × 100.
-          <br>
-          Harga Jual Baru = Harga Beli Baru × (1 + Markup).
-        </div>
       </div>
     </section>
 
     <footer>
-      Kalkulator ini menggunakan metode markup terhadap harga beli.
+      Pasifik Teknik 2026
     </footer>
   </main>
 
@@ -441,10 +432,51 @@
       maximumFractionDigits: 2
     });
 
+    // Format angka dengan titik saat pengguna mengetik.
+    function formatInput(input) {
+      const raw = input.value.replace(/\D/g, "");
+
+      if (raw === "") {
+        input.value = "";
+        return;
+      }
+
+      input.value = Number(raw).toLocaleString("id-ID");
+    }
+
+    // Ambil angka asli dari input yang sudah diberi titik.
+    function getNumber(input) {
+      const raw = input.value.replace(/\./g, "").replace(/\D/g, "");
+      return raw === "" ? NaN : Number(raw);
+    }
+
+    function resetResults() {
+      markupEl.textContent = "-";
+      detailMarkupEl.textContent = "-";
+      newSellEl.textContent = "-";
+      detailBuyEl.textContent = "-";
+      profitEl.textContent = "-";
+    }
+
     function calculate() {
-      const oldBuy = Number(oldBuyInput.value);
-      const oldSell = Number(oldSellInput.value);
-      const newBuy = Number(newBuyInput.value);
+      const oldBuy = getNumber(oldBuyInput);
+      const oldSell = getNumber(oldSellInput);
+      const newBuy = getNumber(newBuyInput);
+
+      // Jangan tampilkan error selama form masih kosong.
+      oldBuyError.style.display = "none";
+      oldSellError.style.display = "none";
+      newBuyError.style.display = "none";
+
+      // Semua hasil tetap kosong jika belum semua diisi.
+      if (
+        Number.isNaN(oldBuy) ||
+        Number.isNaN(oldSell) ||
+        Number.isNaN(newBuy)
+      ) {
+        resetResults();
+        return;
+      }
 
       const validOldBuy = oldBuy > 0;
       const validOldSell = oldSell >= 0;
@@ -455,6 +487,7 @@
       newBuyError.style.display = validNewBuy ? "none" : "block";
 
       if (!validOldBuy || !validOldSell || !validNewBuy) {
+        resetResults();
         return;
       }
 
@@ -474,10 +507,18 @@
     }
 
     [oldBuyInput, oldSellInput, newBuyInput].forEach(input => {
-      input.addEventListener("input", calculate);
+      input.addEventListener("input", () => {
+        formatInput(input);
+        calculate();
+      });
+
+      input.addEventListener("blur", () => {
+        formatInput(input);
+      });
     });
 
-    calculate();
+    // Default awal: semua form dan hasil kosong.
+    resetResults();
   </script>
 
 </body>
